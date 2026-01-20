@@ -12,7 +12,7 @@ RUN apt-get update && \
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --user --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 # Runtime stage
 FROM python:3.13-slim
@@ -32,7 +32,7 @@ ENV PATH=/root/.local/bin:$PATH
 EXPOSE 8080
 
 # Run with gunicorn for production
-RUN pip install --no-cache-dir gunicorn==23.0.0
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org gunicorn==23.0.0
 
 # Use gunicorn with proper worker configuration
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "2", "--timeout", "60", "--preload", "app:app"]

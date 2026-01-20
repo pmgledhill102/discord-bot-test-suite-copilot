@@ -221,10 +221,11 @@ def handle_interaction():
         return jsonify({'error': 'unsupported interaction type'}), 400
 
 
+# Initialize configuration on module import (for gunicorn)
+init_config()
+
+
 if __name__ == '__main__':
-    # Initialize configuration
-    init_config()
-    
     # Get port from environment
     port = int(os.getenv('PORT', '8080'))
     
