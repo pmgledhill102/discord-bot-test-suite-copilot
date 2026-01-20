@@ -50,6 +50,18 @@ bd close <id>
 bd sync               # Sync with git
 ```
 
+### Pub/Sub Emulator
+```bash
+./scripts/pubsub-emulator.sh start   # Start emulator
+./scripts/pubsub-emulator.sh stop    # Stop emulator
+./scripts/pubsub-emulator.sh status  # Check status
+
+# Or manually:
+docker-compose -f docker-compose.pubsub.yml up -d
+export PUBSUB_EMULATOR_HOST=localhost:8085
+export GOOGLE_CLOUD_PROJECT=test-project
+```
+
 ### Linting
 ```bash
 # Install and run pre-commit hooks
@@ -62,7 +74,7 @@ pre-commit run --all-files
 
 - **Sensitive data redaction required:** Never log or publish `token`, signature headers (`X-Signature-Ed25519`, `X-Signature-Timestamp`), or raw request body
 - **Pub/Sub emulator:** Use per-test unique topic/subscription names for parallel test execution
-- **Test public key:** Services must accept `DISCORD_PUBLIC_KEY` environment variable for signature validation
+- **Test public key:** Services must use `DISCORD_PUBLIC_KEY=398803f0f03317b6dc57069dbe7820e5f6cf7d5ff43ad6219710b19b0b49c159`
 - **Test timeout:** All tests must complete within 30 seconds
 
 ## Session Completion Workflow

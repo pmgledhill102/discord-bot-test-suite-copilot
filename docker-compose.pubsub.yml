@@ -1,0 +1,30 @@
+# Pub/Sub Emulator for local development and testing
+#
+# Usage:
+#   docker-compose -f docker-compose.pubsub.yml up -d
+#   export PUBSUB_EMULATOR_HOST=localhost:8085
+#
+# The emulator supports dynamic topic/subscription creation via the API.
+# Tests create unique topics per test run for parallel execution.
+
+services:
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - pubsub
+      - start
+      - --host-port=0.0.0.0:8085
+      - --project=test-project
+    ports:
+      - "8085:8085"
+    environment:
+      - PUBSUB_PROJECT_ID=test-project
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
