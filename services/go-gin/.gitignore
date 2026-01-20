@@ -1,0 +1,11 @@
+# Build output
+/bin/
+*.exe
+
+# Test artifacts
+*.test
+coverage.out
+coverage.html
+
+# Dependency cache (if vendoring)
+/vendor/
