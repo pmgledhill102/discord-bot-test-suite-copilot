@@ -122,12 +122,6 @@ func sendRequestWithHeaders(t *testing.T, body []byte, signature, timestamp stri
 	return resp, respBody
 }
 
-// sendRequestNoSignature sends a request without signature headers
-func sendRequestNoSignature(t *testing.T, body []byte) (*http.Response, []byte) {
-	t.Helper()
-	return sendRequestWithHeaders(t, body, "", "")
-}
-
 // createPingRequest creates a valid ping interaction request
 func createPingRequest() InteractionRequest {
 	return InteractionRequest{

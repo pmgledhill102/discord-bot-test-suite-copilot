@@ -25,6 +25,8 @@ linters-settings:
       - (io.Closer).Close
   govet:
     enable-all: true
+    disable:
+      - fieldalignment # Optimization, not a correctness issue
   gofmt:
     simplify: true
   goimports:
