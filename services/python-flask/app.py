@@ -83,7 +83,12 @@ def health() -> tuple[dict[str, str], int]:
 @app.post("/interactions")
 @require_valid_signature
 def interactions() -> tuple[dict[str, str], int]:
-    _ = request.get_json(silent=True)
+    payload = request.get_json(silent=True) or {}
+    interaction_type = payload.get("type")
+    if interaction_type == 1:
+        return {"type": 1}, 200
+    if interaction_type is None:
+        return {"error": "missing type"}, 400
     return {"message": "placeholder"}, 200
 
 
