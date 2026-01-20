@@ -1,0 +1,78 @@
+# Full test infrastructure for running contract tests
+#
+# Usage:
+#   # Set the service to test (defaults to go-gin)
+#   export SERVICE_DIR=go-gin
+#
+#   # Start infrastructure and service
+#   docker-compose -f docker-compose.test.yml up -d --build
+#
+#   # Run contract tests
+#   docker-compose -f docker-compose.test.yml run --rm contract-tests
+#
+#   # Cleanup
+#   docker-compose -f docker-compose.test.yml down
+#
+# Or use the helper script:
+#   ./scripts/run-contract-tests.sh go-gin
+
+services:
+  # Google Cloud Pub/Sub emulator
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - pubsub
+      - start
+      - --host-port=0.0.0.0:8085
+      - --project=test-project
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Service under test - built from services/${SERVICE_DIR}
+  service-under-test:
+    build:
+      context: ./services/${SERVICE_DIR:-go-gin}
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DISCORD_PUBLIC_KEY=398803f0f03317b6dc57069dbe7820e5f6cf7d5ff43ad6219710b19b0b49c159
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - GOOGLE_CLOUD_PROJECT=test-project
+      - PUBSUB_TOPIC=discord-interactions
+    depends_on:
+      pubsub-emulator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Contract test runner
+  contract-tests:
+    build:
+      context: ./tests/contract
+      dockerfile: Dockerfile
+    environment:
+      - CONTRACT_TEST_TARGET=http://service-under-test:8080
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - GOOGLE_CLOUD_PROJECT=test-project
+    depends_on:
+      service-under-test:
+        condition: service_healthy
+      pubsub-emulator:
+        condition: service_healthy
+    # Run tests and exit
+    command: ["go", "test", "-v", "./..."]
