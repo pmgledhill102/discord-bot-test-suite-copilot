@@ -3,6 +3,7 @@
 This directory contains Discord webhook service implementations across multiple languages and frameworks.
 
 Each service implements the same contract:
+
 1. Validate Ed25519 signature on incoming requests
 2. Respond to Ping (type=1) with Pong (type=1)
 3. Respond to Slash commands (type=2) with deferred response (type=5)
@@ -11,6 +12,7 @@ Each service implements the same contract:
 ## Service Directory Structure
 
 Each service directory should contain:
+
 - `Dockerfile` - Container build instructions
 - `.gitignore` - Language-specific ignore patterns
 - Language-appropriate project files (go.mod, requirements.txt, etc.)
@@ -33,11 +35,13 @@ Each service directory should contain:
 
 ## Federated .gitignore Strategy
 
-The root `.gitignore` handles shared patterns (IDE, env, logs). Each service has its own `.gitignore` for language-specific artifacts.
+The root `.gitignore` handles shared patterns (IDE, env, logs). Each service has its own `.gitignore` for
+language-specific artifacts.
 
 ### .gitignore Templates
 
 #### Go (`go-gin/`)
+
 ```gitignore
 # Build output
 /bin/
@@ -53,6 +57,7 @@ coverage.html
 ```
 
 #### Python (`python-django/`, `python-flask/`)
+
 ```gitignore
 # Byte-compiled files
 __pycache__/
@@ -74,6 +79,7 @@ htmlcov/
 ```
 
 #### Node.js (`node-express/`)
+
 ```gitignore
 # Dependencies
 node_modules/
@@ -88,6 +94,7 @@ build/
 ```
 
 #### Java (`java-spring/`)
+
 ```gitignore
 # Build output
 target/
@@ -105,6 +112,7 @@ build/
 ```
 
 #### Rust (`rust-actix/`)
+
 ```gitignore
 # Build output
 /target/
@@ -114,6 +122,7 @@ build/
 ```
 
 #### C# (`csharp-aspnet/`)
+
 ```gitignore
 # Build output
 bin/
@@ -129,6 +138,7 @@ obj/
 ```
 
 #### Ruby (`ruby-rails/`)
+
 ```gitignore
 # Bundler
 .bundle/
@@ -144,6 +154,7 @@ storage/
 ```
 
 #### PHP (`php-laravel/`)
+
 ```gitignore
 # Dependencies
 /vendor/
@@ -160,6 +171,7 @@ storage/logs/
 ```
 
 #### C++ (`cpp-drogon/`)
+
 ```gitignore
 # Build output
 /build/

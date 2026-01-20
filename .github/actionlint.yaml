@@ -5,7 +5,3 @@ self-hosted-runner:
   labels: []
 
 config-variables: []
-
-# Paths to ignore (relative to repository root)
-paths:
-  ignore: []

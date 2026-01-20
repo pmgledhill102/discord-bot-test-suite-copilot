@@ -1,10 +1,12 @@
 # Contract Tests
 
-Golden contract test suite written in Go. These tests validate service implementations via black-box HTTP testing against containerized services.
+Golden contract test suite written in Go. These tests validate service implementations via black-box HTTP testing
+against containerized services.
 
 ## Overview
 
 Contract tests verify that each service implementation correctly:
+
 1. Validates Ed25519 signatures
 2. Handles Ping/Pong interactions
 3. Handles Slash command interactions
@@ -35,7 +37,7 @@ go test -v ./...
 
 ## Test Structure
 
-```
+```text
 tests/contract/
 ├── README.md           # This file
 ├── go.mod              # Go module definition
@@ -63,16 +65,19 @@ tests/contract/
 Tests use a deterministic Ed25519 key pair for reproducible signature validation.
 
 **Test Public Key:**
-```
+
+```text
 398803f0f03317b6dc57069dbe7820e5f6cf7d5ff43ad6219710b19b0b49c159
 ```
 
 The service under test must be configured with this key:
+
 ```bash
 DISCORD_PUBLIC_KEY=398803f0f03317b6dc57069dbe7820e5f6cf7d5ff43ad6219710b19b0b49c159
 ```
 
 The `testkeys` package provides:
+
 - `TestPublicKey` / `TestPublicKeyHex` - The public key for services
 - `SignRequest(body)` - Signs a request body, returns signature and timestamp
 - `SignRequestWithTimestamp(body, ts)` - Signs with a specific timestamp

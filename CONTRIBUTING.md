@@ -21,7 +21,8 @@ pre-commit run --all-files
 
 ### Editor Configuration
 
-This repo uses EditorConfig for consistent formatting. Most editors support it natively or via plugin. See `.editorconfig` for language-specific settings.
+This repo uses EditorConfig for consistent formatting. Most editors support it natively or via plugin.
+See `.editorconfig` for language-specific settings.
 
 ## Git Standards
 
@@ -42,7 +43,7 @@ Examples: `feature/go-gin-service`, `fix/signature-validation`, `docs/pubsub-sch
 
 Follow conventional commit format:
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -55,6 +56,7 @@ Follow conventional commit format:
 **Scopes:** `go-gin`, `contract-tests`, `ci`, `docs`, or omit for repo-wide changes
 
 Examples:
+
 - `feat(go-gin): add Ed25519 signature validation`
 - `fix(contract-tests): correct Pub/Sub timeout handling`
 - `docs: update CONTRACT-TESTS.md with new test cases`

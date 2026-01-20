@@ -3,10 +3,12 @@
   "MD013": {
     "line_length": 120,
     "tables": false,
-    "code_blocks": false
+    "code_blocks": false,
+    "headings": false
   },
   "MD033": {
     "allowed_elements": ["details", "summary", "br"]
   },
-  "MD041": false
+  "MD041": false,
+  "MD060": false
 }

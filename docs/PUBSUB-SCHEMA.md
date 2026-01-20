@@ -4,7 +4,8 @@ This document defines the schema for messages published to Pub/Sub when handling
 
 ## Overview
 
-When a service receives a valid slash command (interaction type=2), it publishes a sanitized version of the interaction payload to Pub/Sub for downstream processing. Sensitive fields are redacted before publishing.
+When a service receives a valid slash command (interaction type=2), it publishes a sanitized version of the
+interaction payload to Pub/Sub for downstream processing. Sensitive fields are redacted before publishing.
 
 ## Message Format
 
@@ -141,6 +142,7 @@ Attributes provide metadata for filtering and routing without parsing the messag
 ### Output: Published Pub/Sub Message
 
 **Attributes:**
+
 ```json
 {
   "interaction_id": "1234567890",
@@ -154,6 +156,7 @@ Attributes provide metadata for filtering and routing without parsing the messag
 ```
 
 **Data (base64-decoded):**
+
 ```json
 {
   "type": 2,
