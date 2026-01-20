@@ -1,0 +1,4 @@
+Flask
+PyNaCl
+google-cloud-pubsub
+gunicorn
