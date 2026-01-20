@@ -97,7 +97,7 @@ jobs:
 
       - name: Start Pub/Sub emulator
         run: |
-          docker-compose -f docker-compose.pubsub.yml up -d
+          docker compose -f docker-compose.pubsub.yml up -d
           echo "Waiting for Pub/Sub emulator..."
           for _ in {1..30}; do
             if curl -s http://localhost:8085 > /dev/null 2>&1; then
@@ -151,11 +151,11 @@ jobs:
           docker logs service-under-test || true
           echo ""
           echo "=== Pub/Sub emulator logs ==="
-          docker-compose -f docker-compose.pubsub.yml logs || true
+          docker compose -f docker-compose.pubsub.yml logs || true
 
       - name: Cleanup
         if: always()
         run: |
           docker stop service-under-test || true
           docker rm service-under-test || true
-          docker-compose -f docker-compose.pubsub.yml down || true
+          docker compose -f docker-compose.pubsub.yml down || true
