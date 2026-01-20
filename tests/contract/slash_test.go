@@ -63,7 +63,7 @@ func TestSlashCommand_PublishesToPubSub(t *testing.T) {
 	topic, cleanupTopic := createTestTopic(t)
 	defer cleanupTopic()
 
-	_, cleanupSub := createTestSubscription(t, topic)
+	sub, cleanupSub := createTestSubscription(t, topic) //nolint:staticcheck // Used after t.Skip
 	defer cleanupSub()
 
 	// Note: For this test to work, the service must be configured to publish
@@ -103,7 +103,7 @@ func TestSlashCommand_TokenRedactedFromPubSub(t *testing.T) {
 	topic, cleanupTopic := createTestTopic(t)
 	defer cleanupTopic()
 
-	_, cleanupSub := createTestSubscription(t, topic)
+	sub, cleanupSub := createTestSubscription(t, topic) //nolint:staticcheck // Used after t.Skip
 	defer cleanupSub()
 
 	t.Skip("Skipping: Service must be configured with test topic name")
