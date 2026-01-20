@@ -144,7 +144,9 @@ def health() -> tuple[dict[str, str], int]:
 @app.post("/interactions")
 @require_valid_signature
 def interactions() -> tuple[dict[str, str], int]:
-    payload = request.get_json(silent=True) or {}
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return {"error": "invalid request body"}, 400
     interaction_type = payload.get("type")
     if interaction_type == 1:
         return {"type": 1}, 200
