@@ -123,6 +123,27 @@ Each service should include appropriate linting configuration:
 
 ## CI Requirements
 
+### GitHub Actions Security
+
+**All GitHub Actions must be pinned to full SHA hashes** to prevent supply chain attacks.
+
+```yaml
+# ✅ Correct - pinned to SHA with version comment
+uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+
+# ❌ Wrong - using version tag only
+uses: actions/checkout@v4
+```
+
+When adding or updating actions:
+
+1. Find the SHA for the specific version tag on GitHub (Releases page → commit SHA)
+2. Use the full 40-character SHA in the `uses:` line
+3. Add a version comment (e.g., `# v4.3.1`) for maintainability
+4. Run `actionlint` to verify workflow syntax
+
+This policy is enforced by actionlint in CI.
+
 ### Required Status Checks
 
 All PRs must pass:
