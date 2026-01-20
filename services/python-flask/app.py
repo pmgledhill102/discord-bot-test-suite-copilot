@@ -7,11 +7,13 @@ This service handles Discord interactions webhooks:
 - Publishes sanitized slash command payloads to Pub/Sub
 """
 
+import json
 import os
 import time
 from functools import wraps
 
 from flask import Flask, g, request
+from google.cloud import pubsub_v1
 from nacl.exceptions import BadSignatureError
 from nacl.signing import VerifyKey
 
@@ -25,6 +27,25 @@ try:
     VERIFY_KEY = VerifyKey(bytes.fromhex(PUBLIC_KEY_HEX))
 except ValueError as exc:
     raise RuntimeError("Invalid DISCORD_PUBLIC_KEY") from exc
+
+
+def init_pubsub():
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    topic_name = "discord-events"
+    if not project_id or not os.environ.get("PUBSUB_EMULATOR_HOST"):
+        return None
+    try:
+        client = pubsub_v1.PublisherClient()
+    except Exception:
+        return None
+    topic_path = client.topic_path(project_id, topic_name)
+    return client, topic_path
+
+
+def get_pubsub():
+    if not hasattr(app, "pubsub"):
+        app.pubsub = init_pubsub()
+    return app.pubsub
 
 
 def get_raw_body() -> bytes:
@@ -75,6 +96,46 @@ def require_valid_signature(view):
     return wrapper
 
 
+def sanitize_interaction(payload: dict) -> dict:
+    return {
+        "type": payload.get("type"),
+        "id": payload.get("id"),
+        "application_id": payload.get("application_id"),
+        "data": payload.get("data"),
+        "guild_id": payload.get("guild_id"),
+        "channel_id": payload.get("channel_id"),
+        "member": payload.get("member"),
+        "user": payload.get("user"),
+        "locale": payload.get("locale"),
+        "guild_locale": payload.get("guild_locale"),
+    }
+
+
+def publish_interaction(payload: dict) -> None:
+    pubsub_info = get_pubsub()
+    if not pubsub_info:
+        return
+    client, topic_path = pubsub_info
+    sanitized = sanitize_interaction(payload)
+    data = json.dumps(sanitized).encode("utf-8")
+    attributes = {
+        "interaction_id": str(payload.get("id", "")),
+        "interaction_type": str(payload.get("type", "")),
+        "application_id": str(payload.get("application_id", "")),
+        "guild_id": str(payload.get("guild_id", "")),
+        "channel_id": str(payload.get("channel_id", "")),
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    data_payload = payload.get("data") or {}
+    command_name = data_payload.get("name")
+    if command_name:
+        attributes["command_name"] = str(command_name)
+    try:
+        client.publish(topic_path, data, **attributes)
+    except Exception:
+        return
+
+
 @app.get("/health")
 def health() -> tuple[dict[str, str], int]:
     return {"status": "ok"}, 200
@@ -87,9 +148,12 @@ def interactions() -> tuple[dict[str, str], int]:
     interaction_type = payload.get("type")
     if interaction_type == 1:
         return {"type": 1}, 200
+    if interaction_type == 2:
+        publish_interaction(payload)
+        return {"type": 5}, 200
     if interaction_type is None:
         return {"error": "missing type"}, 400
-    return {"message": "placeholder"}, 200
+    return {"error": "unsupported interaction type"}, 400
 
 
 @app.post("/")
