@@ -1,0 +1,144 @@
+# Contract Tests CI
+#
+# Runs contract tests against service implementations on PRs and pushes to main.
+# Uses docker-compose to orchestrate Pub/Sub emulator and service under test.
+
+name: Contract Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+      - 'tests/contract/**'
+      - 'docker-compose*.yml'
+      - '.github/workflows/contract-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/**'
+      - 'tests/contract/**'
+      - 'docker-compose*.yml'
+      - '.github/workflows/contract-tests.yml'
+
+env:
+  DISCORD_PUBLIC_KEY: 398803f0f03317b6dc57069dbe7820e5f6cf7d5ff43ad6219710b19b0b49c159
+
+jobs:
+  contract-tests:
+    name: Contract Tests (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - go-gin
+          # Add more services as they are implemented:
+          # - python-flask
+          # - python-django
+          # - node-express
+          # - java-spring
+          # - rust-actix
+          # - csharp-aspnet
+          # - ruby-rails
+          # - php-laravel
+          # - cpp-drogon
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start Pub/Sub emulator
+        run: |
+          docker-compose -f docker-compose.pubsub.yml up -d
+          echo "Waiting for Pub/Sub emulator..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8085 > /dev/null 2>&1; then
+              echo "Pub/Sub emulator is ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Build service image
+        run: |
+          docker build -t service-under-test ./services/${{ matrix.service }}
+
+      - name: Start service
+        run: |
+          docker run -d \
+            --name service-under-test \
+            --network host \
+            -e PORT=8080 \
+            -e DISCORD_PUBLIC_KEY=${{ env.DISCORD_PUBLIC_KEY }} \
+            -e PUBSUB_EMULATOR_HOST=localhost:8085 \
+            -e GOOGLE_CLOUD_PROJECT=test-project \
+            -e PUBSUB_TOPIC=discord-interactions \
+            service-under-test
+
+          echo "Waiting for service to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health > /dev/null 2>&1; then
+              echo "Service is ready"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: tests/contract/go.sum
+
+      - name: Run contract tests
+        working-directory: tests/contract
+        env:
+          CONTRACT_TEST_TARGET: http://localhost:8080
+          PUBSUB_EMULATOR_HOST: localhost:8085
+          GOOGLE_CLOUD_PROJECT: test-project
+        run: |
+          go test -v ./...
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "=== Service logs ==="
+          docker logs service-under-test || true
+          echo ""
+          echo "=== Pub/Sub emulator logs ==="
+          docker-compose -f docker-compose.pubsub.yml logs || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop service-under-test || true
+          docker rm service-under-test || true
+          docker-compose -f docker-compose.pubsub.yml down || true
+
+  # Lint check for contract tests
+  lint:
+    name: Lint Contract Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: tests/contract/go.sum
+
+      - name: Run go vet
+        working-directory: tests/contract
+        run: go vet ./...
+
+      - name: Check go mod tidy
+        working-directory: tests/contract
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
